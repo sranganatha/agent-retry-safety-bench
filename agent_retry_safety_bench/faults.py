@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from failurebench.models import BenchmarkError
-from failurebench.scenarios import FailureKind, Injection, LifecyclePoint
+from agent_retry_safety_bench.models import BenchmarkError
+from agent_retry_safety_bench.scenarios import FailureKind, Injection, LifecyclePoint
 
 
 class InjectedFailure(BenchmarkError):

@@ -1,4 +1,4 @@
-# Agent FailureBench Report
+# Agent Retry Safety Bench Report
 
 Generated from deterministic local fixtures. Durations are diagnostic, not infrastructure performance claims.
 A scenario passes when its observed status, action, side effects, and invariants match its fixture; an intentionally unsafe control can therefore pass the benchmark.

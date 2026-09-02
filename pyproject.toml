@@ -3,14 +3,14 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agent-failure-bench"
+name = "agent-retry-safety-bench"
 version = "0.1.0"
-description = "A deterministic benchmark for safe recovery in stateful agent workflows"
+description = "A deterministic benchmark for retry safety in stateful agent workflows"
 requires-python = ">=3.12"
 dependencies = []
 
 [project.scripts]
-failurebench = "failurebench.cli:main"
+agent-retry-safety-bench = "agent_retry_safety_bench.cli:main"
 
 [tool.setuptools]
-packages = ["failurebench"]
+packages = ["agent_retry_safety_bench"]

@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from failurebench.config import BenchmarkConfig
-from failurebench.faults import FaultInjector
-from failurebench.ledger import SQLiteTicketLedger
-from failurebench.models import (
+from agent_retry_safety_bench.config import BenchmarkConfig
+from agent_retry_safety_bench.faults import FaultInjector
+from agent_retry_safety_bench.ledger import SQLiteTicketLedger
+from agent_retry_safety_bench.models import (
     BenchmarkError,
     IncidentRequest,
     MaintenanceTicket,
     Telemetry,
     TicketDecision,
 )
-from failurebench.scenarios import FailureKind
+from agent_retry_safety_bench.scenarios import FailureKind
 
 
 @dataclass(slots=True)

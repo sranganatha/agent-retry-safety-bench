@@ -4,18 +4,18 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from failurebench.checkpoints import Checkpoint, SQLiteCheckpointStore
-from failurebench.faults import FaultInjector, InjectedFailure
-from failurebench.models import BenchmarkError, WorkflowResult, WorkflowState
-from failurebench.scenarios import (
+from agent_retry_safety_bench.checkpoints import Checkpoint, SQLiteCheckpointStore
+from agent_retry_safety_bench.faults import FaultInjector, InjectedFailure
+from agent_retry_safety_bench.models import BenchmarkError, WorkflowResult, WorkflowState
+from agent_retry_safety_bench.scenarios import (
     FailureKind,
     LifecyclePoint,
     RecoveryAction,
     RecoveryStrategy,
     Scenario,
 )
-from failurebench.tools import DeterministicTools
-from failurebench.workflow import MaintenanceWorkflow
+from agent_retry_safety_bench.tools import DeterministicTools
+from agent_retry_safety_bench.workflow import MaintenanceWorkflow
 
 
 class RecoveryFailure(BenchmarkError):

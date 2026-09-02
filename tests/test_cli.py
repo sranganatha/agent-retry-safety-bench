@@ -3,7 +3,7 @@ import io
 import json
 import unittest
 
-from failurebench.cli import main
+from agent_retry_safety_bench.cli import main
 
 
 class BaselineCliTest(unittest.TestCase):

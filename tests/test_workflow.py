@@ -2,12 +2,12 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from failurebench.checkpoints import SQLiteCheckpointStore
-from failurebench.config import load_config
-from failurebench.ledger import SQLiteTicketLedger
-from failurebench.models import BenchmarkError, IncidentRequest, WorkflowState
-from failurebench.tools import DeterministicTools
-from failurebench.workflow import MaintenanceWorkflow
+from agent_retry_safety_bench.checkpoints import SQLiteCheckpointStore
+from agent_retry_safety_bench.config import load_config
+from agent_retry_safety_bench.ledger import SQLiteTicketLedger
+from agent_retry_safety_bench.models import BenchmarkError, IncidentRequest, WorkflowState
+from agent_retry_safety_bench.tools import DeterministicTools
+from agent_retry_safety_bench.workflow import MaintenanceWorkflow
 
 
 class HappyPathWorkflowTest(unittest.TestCase):

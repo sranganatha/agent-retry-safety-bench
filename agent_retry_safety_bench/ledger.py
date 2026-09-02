@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-from failurebench.models import (
+from agent_retry_safety_bench.models import (
     BenchmarkError,
     IncidentRequest,
     MaintenanceTicket,
