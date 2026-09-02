@@ -35,7 +35,7 @@ The portfolio demonstration compares two strategies against the same timeout aft
 1. `naive_retry` repeats the write and fails the duplicate-side-effect invariant.
 2. `reconcile_then_retry` checks the external ledger, finds the completed write, and finishes without duplication.
 
-## Planned local MVP
+## Local MVP
 
 - One five-state maintenance-ticket workflow
 - One deterministic model stub and telemetry fixture
@@ -51,24 +51,25 @@ The portfolio demonstration compares two strategies against the same timeout aft
 
 This is a local correctness and safety benchmark, not a general-purpose agent framework, production workflow engine, observability platform, prompt benchmark, or infrastructure chaos system. It requires no paid model, cloud account, distributed workers, UI, or real equipment integration.
 
-## Development status
+## Run the demo
 
-The executable benchmark runs strict JSON-compatible YAML scenarios with bounded `naive_retry` and `reconcile_then_retry` strategies. It records every attempt, evaluates six safety invariants, and demonstrates that reconciliation reuses an uncertain durable ticket while naive retry duplicates it. The complete scenario corpus remains the final implementation slice.
-
-See the current [benchmark report](artifacts/report.md) for the executable comparison.
-
-## Local verification
-
-Local checks require only a running Podman machine:
+From a checkout, with Git, Make, and a running Podman machine:
 
 ```bash
 podman info
 make test-container
-make run
 make report
 ```
 
-No host Python installation is required. `make report` writes one JSON result per implemented scenario and a consolidated report to `artifacts/`.
+After the image is built, `make report` is the complete one-command demo: it runs all ten scenarios in isolated databases and writes ten JSON results and a [consolidated report](artifacts/report.md) to `artifacts/`. Expect `10/10 scenarios matched expectations`. The command exits nonzero for unexpected outcomes; the deliberately unsafe duplicate-write control is an expected outcome, not a safe recovery. `make run` runs only the baseline workflow.
+
+No host Python installation or paid service is required. Image building downloads Python/build dependencies; scenario execution itself works offline. The demo runtime target is under three minutes after image setup; diagnostic durations vary and are excluded from logical repeatability comparisons.
+
+## What the fixtures prove
+
+The [ten-scenario corpus](docs/mvp-spec.md#7-required-scenario-corpus) covers pre-call timeouts, provider failure with/without retry budget, invalid model output, uncertain writes, and checkpoint interruptions. Before the ticket checkpoint, safe resume reconciles the durable ledger; after that checkpoint, it resumes without repeating the write.
+
+Failures are one-shot deterministic injections. The exhausted-provider case sets `max_attempts: 1` (no retry remaining), not a sustained outage. Process interruption is an exception at a named checkpoint boundary, not an OS process kill; no distributed exactly-once or real-provider claims are made. The matched timeout pair demonstrates the strategy difference; aggregate rates across different fixtures are not a controlled performance comparison.
 
 ## Design references
 

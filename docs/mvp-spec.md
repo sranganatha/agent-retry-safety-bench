@@ -100,6 +100,23 @@ Implement invariants as executable checks, not prose-only expectations. A comple
 
 Do not add scenarios until all ten are deterministic and documented.
 
+Implemented fixture mapping (under `scenarios/`):
+
+| # | Fixture |
+|---:|---|
+| 0 | `baseline.yaml` |
+| 1 | `timeout-before-telemetry.yaml` |
+| 2 | `provider-unavailable-recover.yaml` |
+| 3 | `provider-unavailable-exhausted.yaml` |
+| 4 | `malformed-model-output.yaml` |
+| 5 | `timeout-before-ticket.yaml` |
+| 6 | `timeout-after-ticket.yaml` |
+| 7 | `timeout-after-ticket-reconcile.yaml` |
+| 8 | `interruption-after-checkpoint.yaml` |
+| 9 | `interruption-before-checkpoint.yaml` |
+
+Injection is one-shot. Scenario 3 exhausts a one-attempt budget, rather than simulating repeated provider downtime. Scenarios 8 and 9 interrupt checkpoint occurrence 4 (the ticket-created transition): after persistence, resume continues; before persistence, safe recovery must reconcile the already-written ticket before resuming. These are simulated exceptions, not real process termination. Tests additionally sweep all five checkpoint transitions before and after persistence.
+
 ## 8. Scenario contract
 
 Each version-controlled YAML scenario defines:
@@ -138,6 +155,8 @@ The final demo must run the same after-side-effect timeout twice:
 5. The report shows one unsafe result and one safe recovery result.
 
 The complete demonstration must finish locally in under three minutes.
+
+Run `make report` using Podman after image setup. It executes all ten fixtures, including the baseline and matched naive/reconciliation timeout pair, with fresh databases per scenario; writes JSON and Markdown evidence; and exits nonzero if a fixture's expectations do not match. Image build/download time is setup, not benchmark runtime.
 
 ## 11. Implementation slices
 

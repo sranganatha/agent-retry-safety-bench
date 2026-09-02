@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "name": "provider-unavailable-exhausted",
+  "seed": 0,
+  "request": {
+    "workflow_id": "wf-provider-unavailable-exhausted",
+    "equipment_id": "etch-101",
+    "alarm_code": "TEMP_HIGH",
+    "idempotency_key": "wf-provider-unavailable-exhausted:create-ticket"
+  },
+  "recovery_strategy": "reconcile_then_retry",
+  "max_attempts": 1,
+  "injection": {
+    "operation": "decide_ticket",
+    "occurrence": 1,
+    "lifecycle_point": "before_call",
+    "failure": "provider_unavailable"
+  },
+  "expected": {
+    "status": "failed",
+    "recovery_action": "fail",
+    "side_effect_count": 0,
+    "invariants": {
+      "maximum_one_ticket": true,
+      "retry_budget_respected": true,
+      "checkpoint_monotonic": true,
+      "no_completion_on_invalid_output": true,
+      "result_matches_ledger": true,
+      "same_request_identity": true
+    }
+  }
+}
