@@ -53,7 +53,7 @@ This is a local correctness and safety benchmark, not a general-purpose agent fr
 
 ## Development status
 
-The executable baseline persists workflow checkpoints and maintenance tickets in separate SQLite databases. Strict JSON-compatible YAML scenarios can inject deterministic failures at named call, side-effect, and checkpoint boundaries. Recovery strategies remain a later bounded slice.
+The executable benchmark runs strict JSON-compatible YAML scenarios with bounded `naive_retry` and `reconcile_then_retry` strategies. It records every attempt and demonstrates that reconciliation reuses an uncertain durable ticket while naive retry duplicates it. Invariant reporting and the complete scenario corpus remain later slices.
 
 ## Local verification
 
