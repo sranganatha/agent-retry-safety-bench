@@ -7,13 +7,13 @@ from dataclasses import asdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from failurebench.checkpoints import SQLiteCheckpointStore
-from failurebench.config import load_config
-from failurebench.ledger import SQLiteTicketLedger
-from failurebench.models import WorkflowResult
-from failurebench.recovery import run_with_recovery
-from failurebench.scenarios import load_scenario
-from failurebench.tools import DeterministicTools
+from agent_retry_safety_bench.checkpoints import SQLiteCheckpointStore
+from agent_retry_safety_bench.config import load_config
+from agent_retry_safety_bench.ledger import SQLiteTicketLedger
+from agent_retry_safety_bench.models import WorkflowResult
+from agent_retry_safety_bench.recovery import run_with_recovery
+from agent_retry_safety_bench.scenarios import load_scenario
+from agent_retry_safety_bench.tools import DeterministicTools
 
 
 def run_baseline() -> WorkflowResult:

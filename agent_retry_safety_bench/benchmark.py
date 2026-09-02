@@ -9,13 +9,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from failurebench.checkpoints import SQLiteCheckpointStore
-from failurebench.config import load_config
-from failurebench.invariants import InvariantEvidence, evaluate_invariants
-from failurebench.ledger import SQLiteTicketLedger
-from failurebench.recovery import RecoveryFailure, run_with_recovery
-from failurebench.scenarios import Scenario, load_scenario
-from failurebench.tools import DeterministicTools
+from agent_retry_safety_bench.checkpoints import SQLiteCheckpointStore
+from agent_retry_safety_bench.config import load_config
+from agent_retry_safety_bench.invariants import InvariantEvidence, evaluate_invariants
+from agent_retry_safety_bench.ledger import SQLiteTicketLedger
+from agent_retry_safety_bench.recovery import RecoveryFailure, run_with_recovery
+from agent_retry_safety_bench.scenarios import Scenario, load_scenario
+from agent_retry_safety_bench.tools import DeterministicTools
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,7 +132,7 @@ def _rate(numerator: int, denominator: int) -> str:
 
 def render_report(results: tuple[ScenarioResult, ...]) -> str:
     lines = [
-        "# Agent FailureBench Report",
+        "# Agent Retry Safety Bench Report",
         "",
         "Generated from deterministic local fixtures. Durations are diagnostic, not infrastructure performance claims.",
         "A scenario passes when its observed status, action, side effects, and invariants match its fixture; an intentionally unsafe control can therefore pass the benchmark.",

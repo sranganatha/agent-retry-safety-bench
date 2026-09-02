@@ -3,11 +3,11 @@ from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from failurebench.checkpoints import SQLiteCheckpointStore
-from failurebench.config import load_config
-from failurebench.ledger import SQLiteTicketLedger
-from failurebench.recovery import RecoveryFailure, run_with_recovery
-from failurebench.scenarios import (
+from agent_retry_safety_bench.checkpoints import SQLiteCheckpointStore
+from agent_retry_safety_bench.config import load_config
+from agent_retry_safety_bench.ledger import SQLiteTicketLedger
+from agent_retry_safety_bench.recovery import RecoveryFailure, run_with_recovery
+from agent_retry_safety_bench.scenarios import (
     FailureKind,
     Injection,
     LifecyclePoint,
@@ -15,7 +15,7 @@ from failurebench.scenarios import (
     RecoveryStrategy,
     load_scenario,
 )
-from failurebench.tools import DeterministicTools
+from agent_retry_safety_bench.tools import DeterministicTools
 
 
 class RecoveryTest(unittest.TestCase):

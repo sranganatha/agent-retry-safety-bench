@@ -1,6 +1,6 @@
 import unittest
 
-from failurebench.config import ConfigError, load_config, parse_config
+from agent_retry_safety_bench.config import ConfigError, load_config, parse_config
 
 
 class ConfigTest(unittest.TestCase):

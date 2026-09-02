@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from failurebench.models import IncidentRequest, WorkflowState
+from agent_retry_safety_bench.models import IncidentRequest, WorkflowState
 
 
 @dataclass(frozen=True, slots=True)

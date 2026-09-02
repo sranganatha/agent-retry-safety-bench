@@ -1,8 +1,8 @@
 import unittest
 from dataclasses import replace
 
-from failurebench.invariants import InvariantEvidence, evaluate_invariants
-from failurebench.models import IncidentRequest, WorkflowState
+from agent_retry_safety_bench.invariants import InvariantEvidence, evaluate_invariants
+from agent_retry_safety_bench.models import IncidentRequest, WorkflowState
 
 
 class InvariantTest(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
 
-from failurebench.models import BenchmarkError
-from failurebench.scenarios import (
+from agent_retry_safety_bench.models import BenchmarkError
+from agent_retry_safety_bench.scenarios import (
     FailureKind,
     LifecyclePoint,
     RecoveryStrategy,

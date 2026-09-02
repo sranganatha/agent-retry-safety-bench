@@ -4,8 +4,8 @@ from dataclasses import asdict, replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from failurebench.benchmark import execute_scenario, render_report, write_evidence
-from failurebench.scenarios import (
+from agent_retry_safety_bench.benchmark import execute_scenario, render_report, write_evidence
+from agent_retry_safety_bench.scenarios import (
     FailureKind,
     Injection,
     LifecyclePoint,

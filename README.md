@@ -1,8 +1,8 @@
-# Agent FailureBench
+# Agent Retry Safety Bench
 
-[![CI](https://github.com/sranganatha/agent-failure-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/sranganatha/agent-failure-bench/actions/workflows/ci.yml)
+[![CI](https://github.com/sranganatha/agent-retry-safety-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/sranganatha/agent-retry-safety-bench/actions/workflows/ci.yml)
 
-A reproducible benchmark for measuring safe recovery in stateful agent workflows.
+A reproducible benchmark for measuring retry safety in stateful agent workflows.
 
 > Retrying a failed agent tool is unsafe unless the system can determine whether the external side effect already occurred.
 
@@ -10,7 +10,7 @@ A reproducible benchmark for measuring safe recovery in stateful agent workflows
 
 Agent failures become dangerous when the caller cannot tell whether a state-changing tool completed. A timeout after a successful write can look identical to a timeout before the write; blindly retrying may create duplicate payments, infrastructure changes, messages, or maintenance records.
 
-Agent FailureBench makes that reliability problem deterministic, visible, and measurable. Its concrete example is an industrial maintenance workflow that reads equipment telemetry and creates a maintenance ticket, but the recovery pattern applies to any agent that changes external state.
+Agent Retry Safety Bench makes that reliability problem deterministic, visible, and measurable. Its concrete example is an industrial maintenance workflow that reads equipment telemetry and creates a maintenance ticket, but the recovery pattern applies to any agent that changes external state.
 
 ## Benchmark workflow
 

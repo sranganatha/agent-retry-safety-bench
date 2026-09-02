@@ -7,7 +7,7 @@ import sqlite3
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from failurebench.models import (
+from agent_retry_safety_bench.models import (
     BenchmarkError,
     IncidentRequest,
     Telemetry,

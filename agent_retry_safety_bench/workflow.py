@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from failurebench.checkpoints import Checkpoint, SQLiteCheckpointStore
-from failurebench.models import (
+from agent_retry_safety_bench.checkpoints import Checkpoint, SQLiteCheckpointStore
+from agent_retry_safety_bench.models import (
     BenchmarkError,
     IncidentRequest,
     WorkflowResult,
     WorkflowState,
 )
-from failurebench.tools import DeterministicTools
+from agent_retry_safety_bench.tools import DeterministicTools
 
 
 class MaintenanceWorkflow:

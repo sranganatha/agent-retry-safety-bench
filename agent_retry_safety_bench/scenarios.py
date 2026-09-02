@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from failurebench.models import BenchmarkError, IncidentRequest
+from agent_retry_safety_bench.models import BenchmarkError, IncidentRequest
 
 
 class LifecyclePoint(StrEnum):
