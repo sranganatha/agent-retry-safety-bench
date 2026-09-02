@@ -19,10 +19,12 @@ class MaintenanceWorkflow:
         self.tools = tools
         self.checkpoints = checkpoints
         self.state = WorkflowState.RECEIVED
-        self.state_history = [self.state]
+        self.state_history: list[WorkflowState] = []
 
     def _save(self, checkpoint: Checkpoint) -> None:
+        self.tools.faults.before_checkpoint()
         self.checkpoints.save(checkpoint)
+        self.tools.faults.after_checkpoint()
         self.state = checkpoint.state
         self.state_history.append(checkpoint.state)
 
@@ -30,7 +32,7 @@ class MaintenanceWorkflow:
         checkpoint = self.checkpoints.load_latest(request.workflow_id)
         if checkpoint is None:
             checkpoint = Checkpoint(request, WorkflowState.RECEIVED)
-            self.checkpoints.save(checkpoint)
+            self._save(checkpoint)
         elif checkpoint.request != request:
             raise BenchmarkError("REQUEST_IDENTITY_MISMATCH")
 

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "name": "timeout-after-ticket-naive",
+  "seed": 0,
+  "request": {
+    "workflow_id": "wf-timeout-ticket-naive",
+    "equipment_id": "etch-101",
+    "alarm_code": "TEMP_HIGH",
+    "idempotency_key": "wf-timeout-ticket-naive:create-ticket"
+  },
+  "recovery_strategy": "naive_retry",
+  "max_attempts": 2,
+  "injection": {
+    "operation": "create_ticket",
+    "occurrence": 1,
+    "lifecycle_point": "after_side_effect",
+    "failure": "timeout"
+  },
+  "expected": {
+    "status": "completed",
+    "recovery_action": "retry",
+    "side_effect_count": 2,
+    "invariants": {
+      "maximum_one_ticket": false,
+      "retry_budget_respected": true,
+      "checkpoint_monotonic": true,
+      "no_completion_on_invalid_output": true,
+      "result_matches_ledger": true,
+      "same_request_identity": true
+    }
+  }
+}
