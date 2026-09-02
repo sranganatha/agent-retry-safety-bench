@@ -53,7 +53,9 @@ This is a local correctness and safety benchmark, not a general-purpose agent fr
 
 ## Development status
 
-The executable benchmark runs strict JSON-compatible YAML scenarios with bounded `naive_retry` and `reconcile_then_retry` strategies. It records every attempt and demonstrates that reconciliation reuses an uncertain durable ticket while naive retry duplicates it. Invariant reporting and the complete scenario corpus remain later slices.
+The executable benchmark runs strict JSON-compatible YAML scenarios with bounded `naive_retry` and `reconcile_then_retry` strategies. It records every attempt, evaluates six safety invariants, and demonstrates that reconciliation reuses an uncertain durable ticket while naive retry duplicates it. The complete scenario corpus remains the final implementation slice.
+
+See the current [benchmark report](artifacts/report.md) for the executable comparison.
 
 ## Local verification
 
@@ -63,9 +65,10 @@ Local checks require only a running Podman machine:
 podman info
 make test-container
 make run
+make report
 ```
 
-No host Python installation is required.
+No host Python installation is required. `make report` writes one JSON result per implemented scenario and a consolidated report to `artifacts/`.
 
 ## Design references
 
