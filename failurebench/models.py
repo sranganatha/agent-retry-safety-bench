@@ -85,6 +85,11 @@ class MaintenanceTicket:
     reason: str
     idempotency_key: str
 
+    def __post_init__(self) -> None:
+        values = (self.id, self.equipment_id, self.reason, self.idempotency_key)
+        if any(not isinstance(value, str) or not value.strip() for value in values):
+            raise BenchmarkError("TICKET_INVALID")
+
 
 @dataclass(frozen=True, slots=True)
 class WorkflowResult:

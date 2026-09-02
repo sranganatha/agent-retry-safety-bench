@@ -53,7 +53,7 @@ This is a local correctness and safety benchmark, not a general-purpose agent fr
 
 ## Development status
 
-The executable baseline persists all five workflow states to SQLite, resumes from the latest durable checkpoint, and creates exactly one in-memory maintenance ticket. The external ticket ledger and recovery strategies remain later bounded slices.
+The executable baseline persists workflow checkpoints and maintenance tickets in separate SQLite databases, resumes from the latest durable state, and exposes ticket lookup by idempotency key. Recovery strategies remain a later bounded slice.
 
 ## Local verification
 

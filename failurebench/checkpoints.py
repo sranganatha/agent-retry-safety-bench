@@ -57,7 +57,7 @@ class Checkpoint:
 
 class SQLiteCheckpointStore:
     def __init__(self, path: str | Path):
-        self.path = str(path)
+        self.path = Path(path)
         with self._connect() as connection:
             connection.execute(
                 """

@@ -14,6 +14,8 @@ from failurebench.tools import DeterministicTools
 
 class MaintenanceWorkflow:
     def __init__(self, tools: DeterministicTools, checkpoints: SQLiteCheckpointStore):
+        if tools.ticket_ledger.path.resolve() == checkpoints.path.resolve():
+            raise BenchmarkError("STORAGE_BOUNDARY_INVALID")
         self.tools = tools
         self.checkpoints = checkpoints
         self.state = WorkflowState.RECEIVED
@@ -95,6 +97,6 @@ class MaintenanceWorkflow:
             status=self.state,
             ticket_id=ticket_id,
             recovery_strategy="baseline",
-            side_effect_count=len(self.tools.tickets),
+            side_effect_count=self.tools.ticket_count(request.idempotency_key),
             state_history=tuple(self.state_history),
         )
