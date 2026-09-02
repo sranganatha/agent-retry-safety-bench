@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from failurebench.config import BenchmarkConfig
+from failurebench.ledger import SQLiteTicketLedger
 from failurebench.models import (
     BenchmarkError,
     IncidentRequest,
@@ -17,7 +18,7 @@ from failurebench.models import (
 @dataclass(slots=True)
 class DeterministicTools:
     config: BenchmarkConfig
-    tickets: list[MaintenanceTicket] = field(default_factory=list)
+    ticket_ledger: SQLiteTicketLedger
 
     def read_telemetry(self, equipment_id: str) -> Telemetry:
         equipment = next(
@@ -39,11 +40,12 @@ class DeterministicTools:
     def create_maintenance_ticket(
         self, request: IncidentRequest, decision: TicketDecision
     ) -> MaintenanceTicket:
-        ticket = MaintenanceTicket(
-            id=f"ticket-{1001 + len(self.tickets)}",
-            equipment_id=request.equipment_id,
-            reason=decision.reason,
-            idempotency_key=request.idempotency_key,
-        )
-        self.tickets.append(ticket)
-        return ticket
+        return self.ticket_ledger.create(request, decision)
+
+    def find_maintenance_tickets(
+        self, idempotency_key: str
+    ) -> tuple[MaintenanceTicket, ...]:
+        return self.ticket_ledger.find_by_idempotency_key(idempotency_key)
+
+    def ticket_count(self, idempotency_key: str) -> int:
+        return self.ticket_ledger.count(idempotency_key)

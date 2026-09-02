@@ -9,13 +9,13 @@ from tempfile import TemporaryDirectory
 
 from failurebench.checkpoints import SQLiteCheckpointStore
 from failurebench.config import load_config
+from failurebench.ledger import SQLiteTicketLedger
 from failurebench.models import IncidentRequest, WorkflowResult
 from failurebench.tools import DeterministicTools
 from failurebench.workflow import MaintenanceWorkflow
 
 
 def run_baseline() -> WorkflowResult:
-    tools = DeterministicTools(load_config("config/demo.json"))
     request = IncidentRequest(
         workflow_id="wf-123",
         equipment_id="etch-101",
@@ -23,7 +23,12 @@ def run_baseline() -> WorkflowResult:
         idempotency_key="wf-123:create-ticket",
     )
     with TemporaryDirectory() as directory:
-        checkpoints = SQLiteCheckpointStore(Path(directory) / "checkpoints.db")
+        database_directory = Path(directory)
+        checkpoints = SQLiteCheckpointStore(database_directory / "checkpoints.db")
+        tools = DeterministicTools(
+            load_config("config/demo.json"),
+            SQLiteTicketLedger(database_directory / "tickets.db"),
+        )
         return MaintenanceWorkflow(tools, checkpoints).run(request)
 
 

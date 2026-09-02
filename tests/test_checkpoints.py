@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 
 from failurebench.checkpoints import Checkpoint, SQLiteCheckpointStore
 from failurebench.config import BenchmarkConfig, load_config
+from failurebench.ledger import SQLiteTicketLedger
 from failurebench.models import (
     BenchmarkError,
     IncidentRequest,
@@ -22,6 +23,7 @@ class CheckpointTest(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.path = Path(self.directory.name) / "checkpoints.db"
         self.store = SQLiteCheckpointStore(self.path)
+        self.ledger = SQLiteTicketLedger(Path(self.directory.name) / "tickets.db")
         self.request = IncidentRequest(
             "wf-123", "etch-101", "TEMP_HIGH", "wf-123:create-ticket"
         )
@@ -29,7 +31,7 @@ class CheckpointTest(unittest.TestCase):
         self.decision = TicketDecision(True, "Investigate TEMP_HIGH on etch-101")
 
     def test_workflow_persists_every_completed_transition(self) -> None:
-        tools = DeterministicTools(load_config("config/demo.json"))
+        tools = DeterministicTools(load_config("config/demo.json"), self.ledger)
 
         result = MaintenanceWorkflow(tools, self.store).run(self.request)
 
@@ -45,7 +47,9 @@ class CheckpointTest(unittest.TestCase):
                 self.telemetry,
             )
         )
-        tools = DeterministicTools(BenchmarkConfig(version=1, equipment=()))
+        tools = DeterministicTools(
+            BenchmarkConfig(version=1, equipment=()), self.ledger
+        )
 
         result = MaintenanceWorkflow(tools, self.store).run(self.request)
 
@@ -61,7 +65,8 @@ class CheckpointTest(unittest.TestCase):
 
         with self.assertRaisesRegex(BenchmarkError, "REQUEST_IDENTITY_MISMATCH"):
             MaintenanceWorkflow(
-                DeterministicTools(load_config("config/demo.json")), self.store
+                DeterministicTools(load_config("config/demo.json"), self.ledger),
+                self.store,
             ).run(changed)
 
     def test_resume_preserves_valid_no_ticket_decision(self) -> None:
@@ -81,12 +86,14 @@ class CheckpointTest(unittest.TestCase):
                 TicketDecision(False, "Alarm is not active"),
             )
         )
-        tools = DeterministicTools(BenchmarkConfig(version=1, equipment=()))
+        tools = DeterministicTools(
+            BenchmarkConfig(version=1, equipment=()), self.ledger
+        )
 
         with self.assertRaisesRegex(BenchmarkError, "ALARM_NOT_ACTIVE"):
             MaintenanceWorkflow(tools, self.store).run(self.request)
 
-        self.assertEqual([], tools.tickets)
+        self.assertEqual(0, tools.ticket_count("wf-123:create-ticket"))
 
     def test_store_rejects_skipped_and_backward_transitions(self) -> None:
         received = Checkpoint(self.request, WorkflowState.RECEIVED)
