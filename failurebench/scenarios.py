@@ -31,6 +31,14 @@ class RecoveryStrategy(StrEnum):
     RECONCILE_THEN_RETRY = "reconcile_then_retry"
 
 
+class RecoveryAction(StrEnum):
+    NONE = "none"
+    RETRY = "retry"
+    RECONCILE = "reconcile"
+    RESUME = "resume"
+    FAIL = "fail"
+
+
 INVARIANTS = {
     "maximum_one_ticket",
     "retry_budget_respected",
@@ -82,14 +90,12 @@ class Injection:
 @dataclass(frozen=True, slots=True)
 class ExpectedOutcome:
     status: str
-    recovery_action: str
+    recovery_action: RecoveryAction
     side_effect_count: int
     invariants: dict[str, bool]
 
     def __post_init__(self) -> None:
         if self.status not in {"completed", "failed"}:
-            raise BenchmarkError("SCENARIO_INVALID")
-        if self.recovery_action not in {"none", "retry", "reconcile", "fail"}:
             raise BenchmarkError("SCENARIO_INVALID")
         if (
             isinstance(self.side_effect_count, bool)
@@ -185,7 +191,7 @@ def parse_scenario(raw: object) -> Scenario:
             injection=injection,
             expected=ExpectedOutcome(
                 status=expected_data["status"],
-                recovery_action=expected_data["recovery_action"],
+                recovery_action=RecoveryAction(expected_data["recovery_action"]),
                 side_effect_count=expected_data["side_effect_count"],
                 invariants=invariants,
             ),

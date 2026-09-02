@@ -99,3 +99,8 @@ class WorkflowResult:
     recovery_strategy: str
     side_effect_count: int
     state_history: tuple[WorkflowState, ...]
+    recovery_action: str = "none"
+    attempts: int = 1
+    retries: int = 0
+    checkpoint_resumes: int = 0
+    attempt_history: tuple[str, ...] = ("SUCCESS",)

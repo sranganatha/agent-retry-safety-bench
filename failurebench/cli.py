@@ -10,18 +10,14 @@ from tempfile import TemporaryDirectory
 from failurebench.checkpoints import SQLiteCheckpointStore
 from failurebench.config import load_config
 from failurebench.ledger import SQLiteTicketLedger
-from failurebench.models import IncidentRequest, WorkflowResult
+from failurebench.models import WorkflowResult
+from failurebench.recovery import run_with_recovery
+from failurebench.scenarios import load_scenario
 from failurebench.tools import DeterministicTools
-from failurebench.workflow import MaintenanceWorkflow
 
 
 def run_baseline() -> WorkflowResult:
-    request = IncidentRequest(
-        workflow_id="wf-123",
-        equipment_id="etch-101",
-        alarm_code="TEMP_HIGH",
-        idempotency_key="wf-123:create-ticket",
-    )
+    scenario = load_scenario("scenarios/baseline.yaml")
     with TemporaryDirectory() as directory:
         database_directory = Path(directory)
         checkpoints = SQLiteCheckpointStore(database_directory / "checkpoints.db")
@@ -29,7 +25,7 @@ def run_baseline() -> WorkflowResult:
             load_config("config/demo.json"),
             SQLiteTicketLedger(database_directory / "tickets.db"),
         )
-        return MaintenanceWorkflow(tools, checkpoints).run(request)
+        return run_with_recovery(scenario, tools, checkpoints)
 
 
 def main() -> None:
