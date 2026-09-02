@@ -53,7 +53,7 @@ This is a local correctness and safety benchmark, not a general-purpose agent fr
 
 ## Development status
 
-The executable foundation validates versioned, deterministic equipment fixtures. Workflow and recovery behavior will be added in the bounded slices defined by the MVP specification.
+The executable baseline runs all five workflow states against deterministic tool fixtures and creates exactly one in-memory maintenance ticket. Persistence and recovery behavior will be added in later bounded slices.
 
 ## Local verification
 
@@ -62,6 +62,7 @@ Local checks require only a running Podman machine:
 ```bash
 podman info
 make test-container
+make run
 ```
 
 No host Python installation is required.

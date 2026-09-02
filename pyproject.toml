@@ -9,5 +9,8 @@ description = "A deterministic benchmark for safe recovery in stateful agent wor
 requires-python = ">=3.12"
 dependencies = []
 
+[project.scripts]
+failurebench = "failurebench.cli:main"
+
 [tool.setuptools]
 packages = ["failurebench"]
