@@ -1,5 +1,7 @@
 # Agent FailureBench
 
+[![CI](https://github.com/sranganatha/agent-failure-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/sranganatha/agent-failure-bench/actions/workflows/ci.yml)
+
 A reproducible benchmark for measuring safe recovery in stateful agent workflows.
 
 > Retrying a failed agent tool is unsafe unless the system can determine whether the external side effect already occurred.
@@ -51,7 +53,18 @@ This is a local correctness and safety benchmark, not a general-purpose agent fr
 
 ## Development status
 
-The repository currently contains the reviewed MVP contract. Runnable setup and verification commands will be documented only when the first implementation slice provides them.
+The executable foundation validates versioned, deterministic equipment fixtures. Workflow and recovery behavior will be added in the bounded slices defined by the MVP specification.
+
+## Local verification
+
+Local checks require only a running Podman machine:
+
+```bash
+podman info
+make test-container
+```
+
+No host Python installation is required.
 
 ## Design references
 

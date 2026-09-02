@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "equipment": [
+    {
+      "id": "etch-101",
+      "temperature_c": 84.5,
+      "alarms": ["TEMP_HIGH"]
+    },
+    {
+      "id": "etch-201",
+      "temperature_c": 71.0,
+      "alarms": []
+    }
+  ]
+}
