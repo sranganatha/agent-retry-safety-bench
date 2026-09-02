@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -46,11 +47,35 @@ class Telemetry:
     temperature_c: float
     alarms: tuple[str, ...]
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.equipment_id, str) or not self.equipment_id.strip():
+            raise BenchmarkError("TELEMETRY_INVALID")
+        if (
+            isinstance(self.temperature_c, bool)
+            or not isinstance(self.temperature_c, (int, float))
+            or not math.isfinite(self.temperature_c)
+        ):
+            raise BenchmarkError("TELEMETRY_INVALID")
+        if (
+            not isinstance(self.alarms, tuple)
+            or any(not isinstance(alarm, str) or not alarm.strip() for alarm in self.alarms)
+            or len(self.alarms) != len(set(self.alarms))
+        ):
+            raise BenchmarkError("TELEMETRY_INVALID")
+
 
 @dataclass(frozen=True, slots=True)
 class TicketDecision:
     ticket_required: bool
     reason: str
+
+    def __post_init__(self) -> None:
+        if (
+            not isinstance(self.ticket_required, bool)
+            or not isinstance(self.reason, str)
+            or not self.reason.strip()
+        ):
+            raise BenchmarkError("DECISION_INVALID")
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,5 +1,8 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
+from failurebench.checkpoints import SQLiteCheckpointStore
 from failurebench.config import load_config
 from failurebench.models import BenchmarkError, IncidentRequest, WorkflowState
 from failurebench.tools import DeterministicTools
@@ -8,7 +11,12 @@ from failurebench.workflow import MaintenanceWorkflow
 
 class HappyPathWorkflowTest(unittest.TestCase):
     def setUp(self) -> None:
+        self.directory = TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
         self.tools = DeterministicTools(load_config("config/demo.json"))
+        self.checkpoints = SQLiteCheckpointStore(
+            Path(self.directory.name) / "checkpoints.db"
+        )
 
     @staticmethod
     def request(
@@ -22,7 +30,7 @@ class HappyPathWorkflowTest(unittest.TestCase):
         )
 
     def test_baseline_follows_all_states_and_creates_one_ticket(self) -> None:
-        result = MaintenanceWorkflow(self.tools).run(self.request())
+        result = MaintenanceWorkflow(self.tools, self.checkpoints).run(self.request())
 
         self.assertEqual(WorkflowState.COMPLETED, result.status)
         self.assertEqual("ticket-1001", result.ticket_id)
@@ -36,7 +44,7 @@ class HappyPathWorkflowTest(unittest.TestCase):
         self.assertEqual("wf-123:create-ticket", self.tools.tickets[0].idempotency_key)
 
     def test_unknown_equipment_stops_before_ticket_creation(self) -> None:
-        workflow = MaintenanceWorkflow(self.tools)
+        workflow = MaintenanceWorkflow(self.tools, self.checkpoints)
 
         with self.assertRaisesRegex(BenchmarkError, "EQUIPMENT_NOT_FOUND"):
             workflow.run(self.request(equipment_id="missing"))
@@ -45,7 +53,7 @@ class HappyPathWorkflowTest(unittest.TestCase):
         self.assertEqual([], self.tools.tickets)
 
     def test_inactive_alarm_stops_before_ticket_creation(self) -> None:
-        workflow = MaintenanceWorkflow(self.tools)
+        workflow = MaintenanceWorkflow(self.tools, self.checkpoints)
 
         with self.assertRaisesRegex(BenchmarkError, "ALARM_NOT_ACTIVE"):
             workflow.run(self.request(equipment_id="etch-201"))

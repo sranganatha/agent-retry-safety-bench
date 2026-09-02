@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
+from failurebench.checkpoints import SQLiteCheckpointStore
 from failurebench.config import load_config
 from failurebench.models import IncidentRequest, WorkflowResult
 from failurebench.tools import DeterministicTools
@@ -19,7 +22,9 @@ def run_baseline() -> WorkflowResult:
         alarm_code="TEMP_HIGH",
         idempotency_key="wf-123:create-ticket",
     )
-    return MaintenanceWorkflow(tools).run(request)
+    with TemporaryDirectory() as directory:
+        checkpoints = SQLiteCheckpointStore(Path(directory) / "checkpoints.db")
+        return MaintenanceWorkflow(tools, checkpoints).run(request)
 
 
 def main() -> None:
