@@ -13,12 +13,12 @@ test:
 
 run:
 	podman build --tag $(IMAGE) .
-	podman run --rm $(IMAGE) python -m agent_retry_safety_bench.cli
+	podman run --rm --network none $(IMAGE) python -m agent_retry_safety_bench.cli
 
 report:
 	podman build --tag $(IMAGE) .
-	podman run --rm --volume "$(CURDIR):/workspace" $(IMAGE) python -m agent_retry_safety_bench.benchmark /workspace/artifacts
+	podman run --rm --network none --volume "$(CURDIR):/workspace" $(IMAGE) python -m agent_retry_safety_bench.benchmark /workspace/artifacts
 
 test-container:
 	podman build --tag $(IMAGE) .
-	podman run --rm $(IMAGE)
+	podman run --rm --network none $(IMAGE)

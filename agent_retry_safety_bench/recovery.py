@@ -131,17 +131,25 @@ def run_with_recovery(
                 ) from error
 
             injection = error.injection
-            if injection.failure == FailureKind.PROCESS_INTERRUPTION:
-                action = RecoveryAction.RESUME
-            elif (
-                scenario.recovery_strategy == RecoveryStrategy.RECONCILE_THEN_RETRY
-                and injection.operation == "create_ticket"
+            interrupted = injection.failure == FailureKind.PROCESS_INTERRUPTION
+            action = RecoveryAction.RESUME if interrupted else RecoveryAction.RETRY
+            latest = checkpoints.load_latest(scenario.request.workflow_id)
+            uncertain_write = (
+                injection.operation == "create_ticket"
                 and injection.lifecycle_point == LifecyclePoint.AFTER_SIDE_EFFECT
+            ) or (
+                interrupted
+                and latest is not None
+                and latest.state == WorkflowState.DECISION_MADE
+            )
+            if (
+                scenario.recovery_strategy == RecoveryStrategy.RECONCILE_THEN_RETRY
+                and uncertain_write
             ):
-                action = RecoveryAction.RECONCILE
                 try:
-                    if not _reconcile_ticket(scenario, tools, checkpoints):
-                        action = RecoveryAction.RETRY
+                    reconciled = _reconcile_ticket(scenario, tools, checkpoints)
+                    if reconciled and not interrupted:
+                        action = RecoveryAction.RECONCILE
                 except BenchmarkError as reconciliation_error:
                     raise _failure(
                         reconciliation_error.code,
@@ -151,8 +159,6 @@ def run_with_recovery(
                         attempt_history,
                         checkpoint_resumes,
                     ) from reconciliation_error
-            else:
-                action = RecoveryAction.RETRY
             continue
         except BenchmarkError as error:
             attempt_history.append(error.code)

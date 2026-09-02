@@ -1,0 +1,36 @@
+{
+  "attempt_history": [
+    "DECISION_INVALID"
+  ],
+  "attempts": 1,
+  "checkpoint_resumes": 0,
+  "duration_ms": 0.935,
+  "error_code": "DECISION_INVALID",
+  "expectations_met": true,
+  "failed_invariants": [],
+  "injected_failure": "malformed_output",
+  "injection_fired": true,
+  "injection_occurrence": 1,
+  "injection_operation": "decide_ticket",
+  "lifecycle_point": "before_call",
+  "passed_invariants": [
+    "maximum_one_ticket",
+    "retry_budget_respected",
+    "checkpoint_monotonic",
+    "no_completion_on_invalid_output",
+    "result_matches_ledger",
+    "same_request_identity"
+  ],
+  "recovery_action": "fail",
+  "recovery_strategy": "reconcile_then_retry",
+  "retries": 0,
+  "scenario": "malformed-model-output",
+  "seed": 0,
+  "side_effect_count": 0,
+  "state_history": [
+    "received",
+    "telemetry_fetched"
+  ],
+  "status": "failed",
+  "ticket_id": null
+}

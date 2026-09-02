@@ -8,9 +8,9 @@ Safe recovery rate is the share of injected non-baseline runs that complete whil
 
 | Strategy | Scenarios | Pass rate | Safe recovery rate | Duplicate rate | Retries | Average duration |
 |---|---:|---:|---:|---:|---:|---:|
-| baseline | 1 | 100% | n/a | 0% | 0 | 2.710 ms |
-| naive_retry | 1 | 100% | 0% | 100% | 1 | 2.752 ms |
-| reconcile_then_retry | 1 | 100% | 100% | 0% | 1 | 3.198 ms |
+| baseline | 1 | 100% | n/a | 0% | 0 | 2.639 ms |
+| naive_retry | 1 | 100% | 0% | 100% | 1 | 2.250 ms |
+| reconcile_then_retry | 8 | 100% | 75% | 0% | 6 | 2.809 ms |
 
 ## Invariant outcomes
 
@@ -18,12 +18,19 @@ Safe recovery rate is the share of injected non-baseline runs that complete whil
 |---|---:|---:|---:|---:|---:|---:|
 | baseline | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
 | naive_retry | 1/1 | 0/1 | 1/1 | 1/1 | 1/1 | 1/1 |
-| reconcile_then_retry | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
+| reconcile_then_retry | 8/8 | 8/8 | 8/8 | 8/8 | 8/8 | 8/8 |
 
 ## Scenario results
 
 | Scenario | Status | Strategy | Action | Attempts | Tickets | Failed invariants | Expected |
 |---|---|---|---|---:|---:|---|---|
 | baseline | completed | baseline | none | 1 | 1 | none | yes |
+| interruption-after-checkpoint | completed | reconcile_then_retry | resume | 2 | 1 | none | yes |
+| interruption-before-checkpoint | completed | reconcile_then_retry | resume | 2 | 1 | none | yes |
+| malformed-model-output | failed | reconcile_then_retry | fail | 1 | 0 | none | yes |
+| provider-unavailable-exhausted | failed | reconcile_then_retry | fail | 1 | 0 | none | yes |
+| provider-unavailable-recover | completed | reconcile_then_retry | retry | 2 | 1 | none | yes |
 | timeout-after-ticket-reconcile | completed | reconcile_then_retry | reconcile | 2 | 1 | none | yes |
 | timeout-after-ticket-naive | completed | naive_retry | retry | 2 | 2 | maximum_one_ticket | yes |
+| timeout-before-telemetry | completed | reconcile_then_retry | retry | 2 | 1 | none | yes |
+| timeout-before-ticket | completed | reconcile_then_retry | retry | 2 | 1 | none | yes |

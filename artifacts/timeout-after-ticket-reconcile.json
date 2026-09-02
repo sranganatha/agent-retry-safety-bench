@@ -5,7 +5,7 @@
   ],
   "attempts": 2,
   "checkpoint_resumes": 1,
-  "duration_ms": 3.198,
+  "duration_ms": 3.508,
   "error_code": null,
   "expectations_met": true,
   "failed_invariants": [],

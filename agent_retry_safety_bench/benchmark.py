@@ -224,9 +224,17 @@ def main() -> None:
     scenarios = tuple(
         load_scenario(path) for path in sorted(Path("scenarios").glob("*.yaml"))
     )
+    if not scenarios:
+        raise SystemExit("No scenario fixtures found.")
     results = tuple(execute_scenario(scenario) for scenario in scenarios)
     write_evidence(results, output)
-    print(f"wrote {len(results)} scenario results and {output / 'report.md'}")
+    matched = sum(result.expectations_met for result in results)
+    print(
+        f"{matched}/{len(results)} scenarios matched expectations; "
+        f"report: {output / 'report.md'}"
+    )
+    if matched != len(results):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

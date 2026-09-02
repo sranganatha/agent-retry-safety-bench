@@ -1,34 +1,33 @@
 {
   "attempt_history": [
-    "INJECTED_TIMEOUT",
+    "INJECTED_PROCESS_INTERRUPTION",
     "SUCCESS"
   ],
   "attempts": 2,
   "checkpoint_resumes": 1,
-  "duration_ms": 2.25,
+  "duration_ms": 2.875,
   "error_code": null,
   "expectations_met": true,
-  "failed_invariants": [
-    "maximum_one_ticket"
-  ],
-  "injected_failure": "timeout",
+  "failed_invariants": [],
+  "injected_failure": "process_interruption",
   "injection_fired": true,
-  "injection_occurrence": 1,
-  "injection_operation": "create_ticket",
-  "lifecycle_point": "after_side_effect",
+  "injection_occurrence": 4,
+  "injection_operation": "checkpoint",
+  "lifecycle_point": "before_checkpoint",
   "passed_invariants": [
+    "maximum_one_ticket",
     "retry_budget_respected",
     "checkpoint_monotonic",
     "no_completion_on_invalid_output",
     "result_matches_ledger",
     "same_request_identity"
   ],
-  "recovery_action": "retry",
-  "recovery_strategy": "naive_retry",
+  "recovery_action": "resume",
+  "recovery_strategy": "reconcile_then_retry",
   "retries": 1,
-  "scenario": "timeout-after-ticket-naive",
+  "scenario": "interruption-before-checkpoint",
   "seed": 0,
-  "side_effect_count": 2,
+  "side_effect_count": 1,
   "state_history": [
     "received",
     "telemetry_fetched",
@@ -37,5 +36,5 @@
     "completed"
   ],
   "status": "completed",
-  "ticket_id": "ticket-1002"
+  "ticket_id": "ticket-1001"
 }
