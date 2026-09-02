@@ -53,7 +53,7 @@ This is a local correctness and safety benchmark, not a general-purpose agent fr
 
 ## Development status
 
-The executable baseline runs all five workflow states against deterministic tool fixtures and creates exactly one in-memory maintenance ticket. Persistence and recovery behavior will be added in later bounded slices.
+The executable baseline persists all five workflow states to SQLite, resumes from the latest durable checkpoint, and creates exactly one in-memory maintenance ticket. The external ticket ledger and recovery strategies remain later bounded slices.
 
 ## Local verification
 
