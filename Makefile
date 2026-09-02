@@ -6,6 +6,7 @@ IMAGE ?= agent-failure-bench:test
 check:
 	$(PYTHON) -m compileall -q failurebench tests
 	$(PYTHON) -m failurebench.config config/demo.json
+	$(PYTHON) -m failurebench.scenarios
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v

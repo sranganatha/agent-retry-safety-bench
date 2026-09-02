@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from failurebench.config import BenchmarkConfig
+from failurebench.faults import FaultInjector
 from failurebench.ledger import SQLiteTicketLedger
 from failurebench.models import (
     BenchmarkError,
@@ -13,14 +14,17 @@ from failurebench.models import (
     Telemetry,
     TicketDecision,
 )
+from failurebench.scenarios import FailureKind
 
 
 @dataclass(slots=True)
 class DeterministicTools:
     config: BenchmarkConfig
     ticket_ledger: SQLiteTicketLedger
+    faults: FaultInjector = field(default_factory=FaultInjector)
 
     def read_telemetry(self, equipment_id: str) -> Telemetry:
+        self.faults.before_call("read_telemetry")
         equipment = next(
             (item for item in self.config.equipment if item.id == equipment_id), None
         )
@@ -31,6 +35,9 @@ class DeterministicTools:
     def decide_ticket(
         self, request: IncidentRequest, telemetry: Telemetry
     ) -> TicketDecision:
+        injected = self.faults.before_call("decide_ticket")
+        if injected == FailureKind.MALFORMED_OUTPUT:
+            return TicketDecision(ticket_required="yes", reason="")
         is_active = request.alarm_code in telemetry.alarms
         return TicketDecision(
             ticket_required=is_active,
@@ -40,7 +47,10 @@ class DeterministicTools:
     def create_maintenance_ticket(
         self, request: IncidentRequest, decision: TicketDecision
     ) -> MaintenanceTicket:
-        return self.ticket_ledger.create(request, decision)
+        self.faults.before_call("create_ticket")
+        ticket = self.ticket_ledger.create(request, decision)
+        self.faults.after_side_effect("create_ticket")
+        return ticket
 
     def find_maintenance_tickets(
         self, idempotency_key: str
