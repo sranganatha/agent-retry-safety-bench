@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from dataclasses import dataclass
 from enum import StrEnum
@@ -125,7 +126,7 @@ class Scenario:
             isinstance(self.version, bool)
             or self.version != 1
             or not isinstance(self.name, str)
-            or not self.name.strip()
+            or re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", self.name) is None
         ):
             raise BenchmarkError("SCENARIO_INVALID")
         if isinstance(self.seed, bool) or not isinstance(self.seed, int) or self.seed < 0:

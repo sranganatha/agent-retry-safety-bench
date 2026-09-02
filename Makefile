@@ -1,7 +1,7 @@
 PYTHON ?= python
 IMAGE ?= agent-failure-bench:test
 
-.PHONY: check run test test-container
+.PHONY: check report run test test-container
 
 check:
 	$(PYTHON) -m compileall -q failurebench tests
@@ -14,6 +14,10 @@ test:
 run:
 	podman build --tag $(IMAGE) .
 	podman run --rm $(IMAGE) python -m failurebench.cli
+
+report:
+	podman build --tag $(IMAGE) .
+	podman run --rm --volume "$(CURDIR):/workspace" $(IMAGE) python -m failurebench.benchmark /workspace/artifacts
 
 test-container:
 	podman build --tag $(IMAGE) .
