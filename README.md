@@ -4,7 +4,16 @@
 
 A reproducible benchmark for measuring retry safety in stateful agent workflows.
 
-> Retrying a failed agent tool is unsafe unless the system can determine whether the external side effect already occurred.
+> Blindly retrying a non-idempotent tool after an uncertain outcome can duplicate external side effects.
+
+The benchmark compares two strategies against the same timeout after ticket creation:
+
+| Same post-write timeout | Tickets created | `maximum_one_ticket` invariant |
+|---|---:|---|
+| Naive retry | 2 | Fails |
+| Reconcile then retry | 1 | Passes |
+
+See the [scenario results](artifacts/report.md#scenario-results) and [JSON evidence](artifacts/).
 
 ## Why this exists
 
@@ -21,31 +30,26 @@ Run explicit state machine
       ↓
 Inject a configured failure
       ↓
-Checkpoint and recover
-      ↓
-Reconcile uncertain side effects
+Recover using the selected strategy
       ↓
 Evaluate safety invariants
       ↓
 Generate JSON and Markdown evidence
 ```
 
-The portfolio demonstration compares two strategies against the same timeout after ticket creation:
-
 1. `naive_retry` repeats the write and fails the duplicate-side-effect invariant.
 2. `reconcile_then_retry` checks the external ledger, finds the completed write, and finishes without duplication.
 
-## Local MVP
+## What's implemented
 
-- One five-state maintenance-ticket workflow
-- One deterministic model stub and telemetry fixture
-- One side-effecting maintenance tool
-- SQLite checkpoints and a separate side-effect ledger
-- Failure injection at exact lifecycle points
-- Two bounded recovery strategies
-- Ten deterministic scenarios
-- Machine-readable invariants and reports
-- One command-line demonstration
+- Five-state maintenance workflow with deterministic telemetry and model output
+- Durable SQLite checkpoints, separate ticket ledger, and stable request identity
+- Bounded naive-retry and reconcile-before-retry strategies
+- Ten reproducible failure scenarios covering timeouts, invalid output,
+  provider unavailability, and checkpoint interruptions
+- Six executable invariants checking duplication, retry budgets,
+  checkpoint order, decision validity, ledger consistency, and request identity
+- Offline container execution with per-scenario JSON evidence and a Markdown report
 
 ## Scope
 
@@ -53,9 +57,11 @@ This is a local correctness and safety benchmark, not a general-purpose agent fr
 
 ## Run the demo
 
-From a checkout, with Git, Make, and a running Podman machine:
+With Git, Make, and a running Podman machine:
 
 ```bash
+git clone https://github.com/sranganatha/agent-retry-safety-bench.git
+cd agent-retry-safety-bench
 podman info
 make test-container
 make report
@@ -69,9 +75,7 @@ No host Python installation or paid service is required. Image building download
 
 The [ten-scenario corpus](docs/mvp-spec.md#7-required-scenario-corpus) covers pre-call timeouts, provider failure with/without retry budget, invalid model output, uncertain writes, and checkpoint interruptions. Before the ticket checkpoint, safe resume reconciles the durable ledger; after that checkpoint, it resumes without repeating the write.
 
-The safe runner checks durable state before every attempt, including a new invocation with reopened databases. A `decision_made` checkpoint means a ticket write may be outstanding: reconciliation must succeed before re-execution, regardless of the injected failure type or location. Fresh-runner and checkpoint-timeout regressions verify this boundary. This is a single-runner model, not a concurrent exactly-once protocol; attempt budgets and fault schedules are per invocation.
-
-The invalid-output invariant checks the persisted decision's boolean and nonblank-reason contract independently of the final exception code. A mutation test bypasses decision validation and proves that a completed run still fails this invariant.
+Safe recovery is tested both within an invocation and with fresh runner objects reopening the databases. This is a single-runner model, not a concurrent exactly-once protocol; attempt budgets and fault schedules are per invocation. The [specification](docs/mvp-spec.md#6-safety-invariants) describes the independent decision-validity check and its mutation test.
 
 Failures are one-shot deterministic injections. The exhausted-provider case sets `max_attempts: 1` (no retry remaining), not a sustained outage. Process interruption is an exception at a named checkpoint boundary, not an OS process kill; no distributed exactly-once or real-provider claims are made. The matched timeout pair demonstrates the strategy difference; aggregate rates across different fixtures are not a controlled performance comparison.
 

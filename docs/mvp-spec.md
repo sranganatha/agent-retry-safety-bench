@@ -4,7 +4,7 @@
 
 Prove one claim:
 
-> Retrying a failed agent tool is unsafe unless the system can determine whether the external side effect already occurred.
+> Blindly retrying a non-idempotent tool after an uncertain outcome can duplicate external side effects.
 
 The benchmark passes only when the workflow outcome and every expected safety invariant agree.
 
@@ -94,6 +94,8 @@ Tests enumerate every combination, reject unsupported ones, and verify that each
 | `same_request_identity` | Resume preserves workflow and idempotency identifiers |
 
 Implement invariants as executable checks, not prose-only expectations. A completed workflow may still fail the benchmark when an invariant fails.
+
+The invalid-output invariant checks the persisted decision's boolean and nonblank-reason contract independently of the final exception code. A mutation test bypasses decision validation and proves that a completed run still fails this invariant.
 
 ## 7. Required scenario corpus
 
