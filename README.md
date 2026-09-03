@@ -60,8 +60,6 @@ This is a local correctness and safety benchmark, not a general-purpose agent fr
 With Git, Make, and a running Podman machine:
 
 ```bash
-git clone https://github.com/sranganatha/agent-retry-safety-bench.git
-cd agent-retry-safety-bench
 podman info
 make test-container
 make report
