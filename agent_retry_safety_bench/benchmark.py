@@ -82,7 +82,7 @@ def execute_scenario(scenario: Scenario) -> ScenarioResult:
                 ticket_id=ticket_id,
                 attempts=attempts,
                 max_attempts=scenario.max_attempts,
-                error_code=error_code,
+                decision=latest.decision if latest else None,
                 state_history=state_history,
                 ticket_ids=tuple(ticket.id for ticket in tickets),
                 request=scenario.request,

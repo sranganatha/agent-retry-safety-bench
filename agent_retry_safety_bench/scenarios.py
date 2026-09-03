@@ -59,6 +59,10 @@ class Injection:
     failure: FailureKind
 
     def __post_init__(self) -> None:
+        if not isinstance(self.lifecycle_point, LifecyclePoint) or not isinstance(
+            self.failure, FailureKind
+        ):
+            raise BenchmarkError("SCENARIO_INVALID")
         if self.operation not in OPERATIONS:
             raise BenchmarkError("SCENARIO_INVALID")
         if isinstance(self.occurrence, bool) or not isinstance(self.occurrence, int):

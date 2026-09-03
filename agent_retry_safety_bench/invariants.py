@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from agent_retry_safety_bench.models import IncidentRequest, WorkflowState
+from agent_retry_safety_bench.models import IncidentRequest, TicketDecision, WorkflowState
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,7 +13,7 @@ class InvariantEvidence:
     ticket_id: str | None
     attempts: int
     max_attempts: int
-    error_code: str | None
+    decision: TicketDecision | None
     state_history: tuple[WorkflowState, ...]
     ticket_ids: tuple[str, ...]
     request: IncidentRequest
@@ -26,8 +26,11 @@ def evaluate_invariants(evidence: InvariantEvidence) -> dict[str, bool]:
         "maximum_one_ticket": len(evidence.ticket_ids) <= 1,
         "retry_budget_respected": evidence.attempts <= evidence.max_attempts,
         "checkpoint_monotonic": evidence.state_history == expected_history,
-        "no_completion_on_invalid_output": not (
-            evidence.status == "completed" and evidence.error_code == "DECISION_INVALID"
+        "no_completion_on_invalid_output": evidence.status != "completed" or (
+            evidence.decision is not None
+            and isinstance(evidence.decision.ticket_required, bool)
+            and isinstance(evidence.decision.reason, str)
+            and bool(evidence.decision.reason.strip())
         ),
         "result_matches_ledger": evidence.status != "completed"
         or evidence.ticket_id in evidence.ticket_ids,

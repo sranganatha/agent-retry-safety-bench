@@ -3,8 +3,11 @@ import unittest
 from dataclasses import asdict, replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from agent_retry_safety_bench.benchmark import execute_scenario, render_report, write_evidence
+from agent_retry_safety_bench.models import TicketDecision
+from agent_retry_safety_bench.tools import DeterministicTools
 from agent_retry_safety_bench.scenarios import (
     FailureKind,
     Injection,
@@ -86,6 +89,20 @@ class BenchmarkTest(unittest.TestCase):
         results = (execute_scenario(self.baseline),)
 
         self.assertEqual(render_report(results), render_report(results))
+
+    def test_invariant_catches_completion_when_decision_validation_is_bypassed(self) -> None:
+        # Mutate the real decision contract; keep workflow, storage, and reporting real.
+        with patch.object(TicketDecision, "__post_init__", return_value=None):
+            with patch.object(
+                DeterministicTools, "decide_ticket",
+                return_value=TicketDecision("yes", "Non-boolean decision"),
+            ):
+                result = execute_scenario(self.baseline)
+
+        self.assertEqual("completed", result.status)
+        self.assertIsNone(result.error_code)
+        self.assertEqual(("no_completion_on_invalid_output",), result.failed_invariants)
+        self.assertFalse(result.expectations_met)
 
 
 if __name__ == "__main__":

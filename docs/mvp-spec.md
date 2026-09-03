@@ -42,6 +42,8 @@ A failure before a tool call proves that no tool side effect occurred. A failure
 
 Checkpoint only completed state transitions. Resuming must load the latest durable state and must not silently move backward or skip required validation.
 
+Before each safe-strategy attempt, validate the checkpoint's request identity. If its state is `DECISION_MADE`, query the ledger before re-executing: reuse exactly one matching ticket, create only when none exists, and fail closed on ambiguity or mismatch. This applies to both in-invocation retries and new runner objects reopening the same databases; injector failure type/location is not authority for this decision. The local model assumes one runner; retry budgets and injection schedules are bounded per invocation, not durably accumulated across invocations.
+
 ## 4. Recovery strategies
 
 ### `naive_retry`
@@ -70,6 +72,16 @@ Required injection points:
 
 Required failures are timeout, provider unavailable, malformed structured output, and simulated process interruption. Injection is selected by operation name and invocation occurrence, never by timing.
 
+The parser rejects other operation/point/failure combinations and unknown values:
+
+| Failure | Supported locations |
+|---|---|
+| Timeout or provider unavailable | Before any of the three tool calls; after ticket creation; before/after a checkpoint |
+| Malformed output | Before the decision-model call only |
+| Process interruption | Before/after a checkpoint only |
+
+Tests enumerate every combination, reject unsupported ones, and verify that each supported safe-strategy case preserves the ticket invariant.
+
 ## 6. Safety invariants
 
 | Invariant | Pass condition |
@@ -77,7 +89,7 @@ Required failures are timeout, provider unavailable, malformed structured output
 | `maximum_one_ticket` | At most one ticket exists for the idempotency key |
 | `retry_budget_respected` | Attempts do not exceed the configured maximum |
 | `checkpoint_monotonic` | Resume does not move to an earlier unexpected state |
-| `no_completion_on_invalid_output` | Invalid model output cannot produce `COMPLETED` |
+| `no_completion_on_invalid_output` | A completed run has persisted decision content with a boolean ticket requirement and nonblank string reason, checked independently of the final exception |
 | `result_matches_ledger` | The final ticket ID exists in the external ledger |
 | `same_request_identity` | Resume preserves workflow and idempotency identifiers |
 

@@ -9,7 +9,6 @@ from agent_retry_safety_bench.faults import FaultInjector, InjectedFailure
 from agent_retry_safety_bench.models import BenchmarkError, WorkflowResult, WorkflowState
 from agent_retry_safety_bench.scenarios import (
     FailureKind,
-    LifecyclePoint,
     RecoveryAction,
     RecoveryStrategy,
     Scenario,
@@ -105,10 +104,24 @@ def run_with_recovery(
     action = RecoveryAction.NONE
 
     for attempt in range(1, scenario.max_attempts + 1):
-        if attempt > 1 and checkpoints.load_latest(scenario.request.workflow_id):
-            checkpoint_resumes += 1
         try:
-            result = MaintenanceWorkflow(tools, checkpoints).run(scenario.request)
+            workflow = MaintenanceWorkflow(tools, checkpoints)
+            latest = checkpoints.load_latest(scenario.request.workflow_id)
+            if latest is not None:
+                if latest.request != scenario.request:
+                    raise BenchmarkError("REQUEST_IDENTITY_MISMATCH")
+                checkpoint_resumes += 1
+                # A missing ticket checkpoint cannot prove that the write failed.
+                if (
+                    scenario.recovery_strategy == RecoveryStrategy.RECONCILE_THEN_RETRY
+                    and latest.state == WorkflowState.DECISION_MADE
+                    and _reconcile_ticket(scenario, tools, checkpoints)
+                ):
+                    if action != RecoveryAction.RESUME:
+                        action = RecoveryAction.RECONCILE
+                if action == RecoveryAction.NONE:
+                    action = RecoveryAction.RESUME
+            result = workflow.run(scenario.request)
         except InjectedFailure as error:
             attempt_history.append(error.code)
             if scenario.recovery_strategy == RecoveryStrategy.BASELINE:
@@ -130,35 +143,9 @@ def run_with_recovery(
                     checkpoint_resumes,
                 ) from error
 
-            injection = error.injection
-            interrupted = injection.failure == FailureKind.PROCESS_INTERRUPTION
+            # Failure kind labels the action; it never decides whether to reconcile.
+            interrupted = error.injection.failure == FailureKind.PROCESS_INTERRUPTION
             action = RecoveryAction.RESUME if interrupted else RecoveryAction.RETRY
-            latest = checkpoints.load_latest(scenario.request.workflow_id)
-            uncertain_write = (
-                injection.operation == "create_ticket"
-                and injection.lifecycle_point == LifecyclePoint.AFTER_SIDE_EFFECT
-            ) or (
-                interrupted
-                and latest is not None
-                and latest.state == WorkflowState.DECISION_MADE
-            )
-            if (
-                scenario.recovery_strategy == RecoveryStrategy.RECONCILE_THEN_RETRY
-                and uncertain_write
-            ):
-                try:
-                    reconciled = _reconcile_ticket(scenario, tools, checkpoints)
-                    if reconciled and not interrupted:
-                        action = RecoveryAction.RECONCILE
-                except BenchmarkError as reconciliation_error:
-                    raise _failure(
-                        reconciliation_error.code,
-                        reconciliation_error.code,
-                        scenario,
-                        RecoveryAction.FAIL,
-                        attempt_history,
-                        checkpoint_resumes,
-                    ) from reconciliation_error
             continue
         except BenchmarkError as error:
             attempt_history.append(error.code)
