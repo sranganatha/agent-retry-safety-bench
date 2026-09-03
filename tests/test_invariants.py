@@ -1,8 +1,9 @@
 import unittest
 from dataclasses import replace
+from unittest.mock import patch
 
 from agent_retry_safety_bench.invariants import InvariantEvidence, evaluate_invariants
-from agent_retry_safety_bench.models import IncidentRequest, WorkflowState
+from agent_retry_safety_bench.models import IncidentRequest, TicketDecision, WorkflowState
 
 
 class InvariantTest(unittest.TestCase):
@@ -15,7 +16,7 @@ class InvariantTest(unittest.TestCase):
             ticket_id="ticket-1001",
             attempts=1,
             max_attempts=1,
-            error_code=None,
+            decision=TicketDecision(True, "Investigate alarm"),
             state_history=tuple(WorkflowState),
             ticket_ids=("ticket-1001",),
             request=self.request,
@@ -49,10 +50,17 @@ class InvariantTest(unittest.TestCase):
         )
 
     def test_no_completion_on_invalid_output(self) -> None:
-        self.assert_only_fails(
-            "no_completion_on_invalid_output",
-            replace(self.valid, error_code="DECISION_INVALID"),
-        )
+        with patch.object(TicketDecision, "__post_init__", return_value=None):
+            decisions = (
+                None, TicketDecision("yes", "Alarm"), TicketDecision(True, ""),
+                TicketDecision(True, "  "), TicketDecision(True, 42),
+            )
+        for decision in decisions:
+            with self.subTest(decision=decision):
+                self.assert_only_fails(
+                    "no_completion_on_invalid_output",
+                    replace(self.valid, decision=decision),
+                )
 
     def test_result_matches_ledger(self) -> None:
         self.assert_only_fails(

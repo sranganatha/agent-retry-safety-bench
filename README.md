@@ -69,6 +69,10 @@ No host Python installation or paid service is required. Image building download
 
 The [ten-scenario corpus](docs/mvp-spec.md#7-required-scenario-corpus) covers pre-call timeouts, provider failure with/without retry budget, invalid model output, uncertain writes, and checkpoint interruptions. Before the ticket checkpoint, safe resume reconciles the durable ledger; after that checkpoint, it resumes without repeating the write.
 
+The safe runner checks durable state before every attempt, including a new invocation with reopened databases. A `decision_made` checkpoint means a ticket write may be outstanding: reconciliation must succeed before re-execution, regardless of the injected failure type or location. Fresh-runner and checkpoint-timeout regressions verify this boundary. This is a single-runner model, not a concurrent exactly-once protocol; attempt budgets and fault schedules are per invocation.
+
+The invalid-output invariant checks the persisted decision's boolean and nonblank-reason contract independently of the final exception code. A mutation test bypasses decision validation and proves that a completed run still fails this invariant.
+
 Failures are one-shot deterministic injections. The exhausted-provider case sets `max_attempts: 1` (no retry remaining), not a sustained outage. Process interruption is an exception at a named checkpoint boundary, not an OS process kill; no distributed exactly-once or real-provider claims are made. The matched timeout pair demonstrates the strategy difference; aggregate rates across different fixtures are not a controlled performance comparison.
 
 ## Design references

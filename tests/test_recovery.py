@@ -5,7 +5,9 @@ from tempfile import TemporaryDirectory
 
 from agent_retry_safety_bench.checkpoints import SQLiteCheckpointStore
 from agent_retry_safety_bench.config import load_config
+from agent_retry_safety_bench.faults import FaultInjector, InjectedFailure
 from agent_retry_safety_bench.ledger import SQLiteTicketLedger
+from agent_retry_safety_bench.models import WorkflowState
 from agent_retry_safety_bench.recovery import RecoveryFailure, run_with_recovery
 from agent_retry_safety_bench.scenarios import (
     FailureKind,
@@ -16,6 +18,7 @@ from agent_retry_safety_bench.scenarios import (
     load_scenario,
 )
 from agent_retry_safety_bench.tools import DeterministicTools
+from agent_retry_safety_bench.workflow import MaintenanceWorkflow
 
 
 class RecoveryTest(unittest.TestCase):
@@ -146,6 +149,73 @@ class RecoveryTest(unittest.TestCase):
         self.assertEqual(RecoveryAction.RESUME, result.recovery_action)
         self.assertEqual(1, result.checkpoint_resumes)
         self.assertEqual(1, result.side_effect_count)
+
+    def test_timeout_before_ticket_checkpoint_reconciles(self) -> None:
+        scenario = load_scenario("scenarios/interruption-before-checkpoint.yaml")
+        scenario = replace(
+            scenario, injection=replace(scenario.injection, failure=FailureKind.TIMEOUT),
+        )
+        result = self.run_scenario(scenario)
+
+        self.assertEqual(WorkflowState.COMPLETED, result.status)
+        self.assertEqual(1, self.ledger.count(scenario.request.idempotency_key))
+        self.assertEqual("ticket-1001", result.ticket_id)
+        self.assertEqual(RecoveryAction.RECONCILE, result.recovery_action)
+
+    def interrupt_uncheckpointed_write(self):
+        scenario = load_scenario("scenarios/interruption-before-checkpoint.yaml")
+        self.tools.faults = FaultInjector(scenario.injection)
+        with self.assertRaises(InjectedFailure):
+            MaintenanceWorkflow(self.tools, self.checkpoints).run(scenario.request)
+        self.assertEqual(
+            WorkflowState.DECISION_MADE,
+            self.checkpoints.load_latest(scenario.request.workflow_id).state,
+        )
+        self.assertEqual(1, self.ledger.count(scenario.request.idempotency_key))
+        return replace(scenario, injection=None, max_attempts=1)
+
+    def test_fresh_runner_reconciles_without_injector_history(self) -> None:
+        scenario = self.interrupt_uncheckpointed_write()
+        checkpoints = SQLiteCheckpointStore(self.checkpoints.path)
+        ledger = SQLiteTicketLedger(self.ledger.path)
+        tools = DeterministicTools(load_config("config/demo.json"), ledger)
+
+        result = run_with_recovery(scenario, tools, checkpoints)
+
+        self.assertEqual(WorkflowState.COMPLETED, result.status)
+        self.assertEqual(1, ledger.count(scenario.request.idempotency_key))
+        self.assertEqual("ticket-1001", result.ticket_id)
+        self.assertEqual(RecoveryAction.RECONCILE, result.recovery_action)
+        self.assertEqual(1, result.attempts)
+        self.assertEqual(1, result.checkpoint_resumes)
+        self.assertEqual(0, tools.faults.invocations["create_ticket"])
+
+    def test_fresh_resume_rejects_identity_change_before_reconciliation(self) -> None:
+        scenario = self.interrupt_uncheckpointed_write()
+        scenario = replace(
+            scenario, request=replace(scenario.request, alarm_code="PRESSURE_HIGH"),
+        )
+        with self.assertRaisesRegex(RecoveryFailure, "REQUEST_IDENTITY_MISMATCH"):
+            self.run_scenario(scenario)
+        self.assertEqual(1, self.ledger.count(scenario.request.idempotency_key))
+        self.assertEqual(
+            WorkflowState.DECISION_MADE,
+            self.checkpoints.load_latest(scenario.request.workflow_id).state,
+        )
+
+    def test_fresh_resume_fails_closed_on_ambiguous_ledger(self) -> None:
+        scenario = self.interrupt_uncheckpointed_write()
+        latest = self.checkpoints.load_latest(scenario.request.workflow_id)
+        self.ledger.create(scenario.request, latest.decision)
+
+        with self.assertRaisesRegex(RecoveryFailure, "RECONCILIATION_AMBIGUOUS"):
+            self.run_scenario(scenario)
+
+        self.assertEqual(2, self.ledger.count(scenario.request.idempotency_key))
+        self.assertEqual(
+            WorkflowState.DECISION_MADE,
+            self.checkpoints.load_latest(scenario.request.workflow_id).state,
+        )
 
 
 if __name__ == "__main__":
